@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fortnite Island Explorer</title>
+  <style>
+    
+    body {
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  color: #fff;
+  background-color: #000; 
+  overflow-x: hidden;
+}
+
+
+    
+    body.with-lobby-image::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      filter: blur(15px);
+      opacity: 0.75;
+    }
+
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    
+    .search-box {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    #search {
+      width: 60%;
+      padding: 15px 25px;
+      border-radius: 10px;
+      border: 1px solid #555;
+      background-color: #1c1c1c;
+      color: #fff;
+      font-size: 20px;
+    }
+
+    .button {
+      padding: 15px 25px;
+      margin-left: 15px;
+      background-color: #ff5e00;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .button:hover {
+      background-color: #e65200;
+    }
+
+   
+    .card {
+      display: none;
+      background-color: rgba(0, 0, 0, 0.85);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      color: #fff;
+      padding-bottom: 20px;
+    }
+
+    
+    .island-image {
+      width: 100%;
+      height: 350px;
+      background-size: cover;
+      background-position: center;
+      margin-bottom: 20px;
+      cursor: pointer;
+    }
+
+    
+    .card-header {
+      font-size: 40px;
+      font-weight: bold;
+      color: #ff5e00;
+      margin-top: 20px;
+    }
+
+    .details {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 30px;
+      gap: 30px;
+    }
+
+    .detail {
+      flex: 1 1 250px;
+      font-size: 22px;
+      text-align: left;
+      color: #ccc;
+    }
+
+    .highlight {
+      color: #ffc107;
+      font-weight: bold;
+    }
+
+    .tags {
+      margin-top: 20px;
+      font-size: 20px;
+      color: #aaa;
+    }
+
+    .ratings-container {
+      position: relative;
+    }
+
+    .show-more-button {
+      background-color: #444;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 25px;
+      margin-top: 20px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .show-more-button:hover {
+      background-color: #666;
+    }
+
+    .ratings-details {
+      display: none;
+      margin-top: 20px;
+      text-align: left;
+      font-size: 18px;
+      color: #ccc;
+    }
+
+    
+    .island-code {
+      font-size: 22px;
+      font-weight: bold;
+      color: #00b5b8;
+      cursor: pointer;
+      text-decoration: underline;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="search-box">
+    <input type="text" id="search" placeholder="🔍 Enter island code" />
+    <button class="button" onclick="searchIsland()">Search 🌍</button>
+  </div>
+
+  <div id="island-card" class="card">
+    
+    <div id="island-image" class="island-image"></div>
+
+   
+    <div class="card-header" id="island-title">🏝️ Island Title</div>
+
+    
+    <div id="island-code" class="island-code" onclick="copyIslandCode()">Island Code: <span id="code-text">N/A</span></div>
+
+    
+    <div class="details">
+      <div id="island-description" class="detail">📖 Description: <span class="highlight">N/A</span></div>
+      <div id="island-creator" class="detail">🧑‍🎤 Creator: <span class="highlight">N/A</span></div>
+      <div id="created-date" class="detail">📅 Created: <span class="highlight">N/A</span></div>
+      <div id="last-updated" class="detail">⏰ Last Updated: <span class="highlight">N/A</span></div>
+      <div id="island-status" class="detail">✅ Status: <span class="highlight">N/A</span></div>
+
+     
+      <div class="ratings-container detail">
+        <div id="ratings-summary">⭐ Ratings: <span class="highlight">N/A</span></div>
+        <div id="ratings-details" class="ratings-details"></div>
+        <button id="toggle-ratings" class="show-more-button" onclick="toggleRatings()">Show More 📊</button>
+      </div>
+
+      <div id="tags" class="tags">🏷️ Tags: <span class="highlight">N/A</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+async function searchIsland() {
+  const query = document.getElementById("search").value.trim();
+  const API_KEY = "eadee0b6-665fb82d-1a863033-2f764868"; // Replace with your actual API key
+  const url = `https://fortniteapi.io/v1/creative/island?code=${query}`;
+
+  try {
+    const response = await fetch(url, { headers: { Authorization: API_KEY } });
+    if (!response.ok) throw new Error("Island not found or API error.");
+
+    const { island } = await response.json();
+
+    if (!island) {
+      alert("Island data not found.");
+      return;
+    }
+
+   
+    const card = document.getElementById("island-card");
+    card.style.display = "block";
+
+    
+    document.getElementById("island-image").style.backgroundImage = island.image ? `url(${island.image})` : "none";
+    document.getElementById("island-image").onclick = function() {
+      openFullscreen(island.image);
+    };
+
+   
+    if (island.lobbyImage) {
+      document.body.classList.add('with-lobby-image'); 
+      document.body.style.backgroundImage = `url(${island.lobbyImage})`; 
+    } else {
+      
+      document.body.classList.remove('with-lobby-image'); 
+      document.body.style.backgroundImage = `url(${island.image})`; 
+    }
+
+    document.getElementById("island-title").innerText = island.title || "No Title";
+    document.getElementById("island-description").innerHTML = `📖 Description: <span class="highlight">${island.description || "No description available."}</span>`;
+    document.getElementById("island-creator").innerHTML = `🧑‍🎤 Creator: <span class="highlight">${island.creator || "Unknown"}</span>`;
+    document.getElementById("created-date").innerHTML = `📅 Created: <span class="highlight">${island.createdDate ? new Date(island.createdDate).toLocaleDateString() : "N/A"}</span>`;
+    document.getElementById("last-updated").innerHTML = `⏰ Last Updated: <span class="highlight">${island.publishedDate ? new Date(island.publishedDate).toLocaleDateString() : "N/A"}</span>`;
+    document.getElementById("island-status").innerHTML = `🟢 Status: <span class="highlight">${island.xp && island.xp.enabled ? "Awarding XP" : "Calibrating"}</span>`;
+
+
+    const mainRating = island.ratings?.boards?.PEGI?.rating || "N/A";
+    const allRatings = Object.entries(island.ratings?.boards || {}).map(([board, { rating }]) => `${board}: ${rating}`).join("<br>");
+    document.getElementById("ratings-summary").innerHTML = `⭐ Ratings: <span class="highlight">${mainRating}</span>`;
+    document.getElementById("ratings-details").innerHTML = allRatings;
+
+
+    document.getElementById("tags").innerHTML = `🏷️ Tags: <span class="highlight">${island.tags?.join(", ") || "None"}</span>`;
+
+    const islandCode = island.code || "N/A";
+    document.getElementById("code-text").innerText = islandCode;
+  } catch (error) {
+    alert("Error: " + error.message);
+  }
+}
+
+function toggleRatings() {
+  const ratingsDetails = document.getElementById("ratings-details");
+  const toggleButton = document.getElementById("toggle-ratings");
+
+  if (ratingsDetails.style.display === "none" || ratingsDetails.style.display === "") {
+    ratingsDetails.style.display = "block";
+    toggleButton.innerText = "Show Less 📉";
+  } else {
+    ratingsDetails.style.display = "none";
+    toggleButton.innerText = "Show More 📊";
+  }
+}
+
+function openFullscreen(image) {
+  const fullscreenWindow = window.open();
+  fullscreenWindow.document.write(`<html><body><img src="${image}" style="width:100%;height:auto;"></body></html>`);
+}
+
+function copyIslandCode() {
+  const islandCode = document.getElementById("code-text").innerText;
+  navigator.clipboard.writeText(islandCode).then(() => {
+    alert(`Island code "${islandCode}" copied to clipboard! 📋`);
+  }).catch(err => {
+    alert("Failed to copy: " + err);
+  });
+}
+</script>
+
+</body>
+</html>
