@@ -5,18 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fortnite Island Explorer</title>
   <style>
-    
+    /* General Styling */
     body {
   font-family: 'Arial', sans-serif;
   margin: 0;
   padding: 0;
   color: #fff;
-  background-color: #000; 
+  background-color: #000; /* Set background color to black */
   overflow-x: hidden;
 }
 
 
-    
+    /* Blurred Background (Only if lobbyImage exists) */
     body.with-lobby-image::before {
       content: '';
       position: fixed;
@@ -32,14 +32,14 @@
       opacity: 0.75;
     }
 
-    
+    /* Container */
     .container {
       max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
     }
 
-    
+    /* Search Bar */
     .search-box {
       display: flex;
       justify-content: center;
@@ -72,7 +72,7 @@
       background-color: #e65200;
     }
 
-   
+    /* Card Design */
     .card {
       display: none;
       background-color: rgba(0, 0, 0, 0.85);
@@ -84,7 +84,7 @@
       padding-bottom: 20px;
     }
 
-    
+    /* Island Image */
     .island-image {
       width: 100%;
       height: 350px;
@@ -94,7 +94,7 @@
       cursor: pointer;
     }
 
-    
+    /* Island Title */
     .card-header {
       font-size: 40px;
       font-weight: bold;
@@ -155,7 +155,7 @@
       color: #ccc;
     }
 
-    
+    /* Island Code Style */
     .island-code {
       font-size: 22px;
       font-weight: bold;
@@ -175,24 +175,24 @@
   </div>
 
   <div id="island-card" class="card">
-    
+    <!-- Island Image -->
     <div id="island-image" class="island-image"></div>
 
-   
+    <!-- Island Title -->
     <div class="card-header" id="island-title">🏝️ Island Title</div>
 
-    
+    <!-- Island Code -->
     <div id="island-code" class="island-code" onclick="copyIslandCode()">Island Code: <span id="code-text">N/A</span></div>
 
-    
+    <!-- Island Details -->
     <div class="details">
       <div id="island-description" class="detail">📖 Description: <span class="highlight">N/A</span></div>
       <div id="island-creator" class="detail">🧑‍🎤 Creator: <span class="highlight">N/A</span></div>
-      <div id="created-date" class="detail">📅 Created: <span class="highlight">N/A</span></div>
-      <div id="last-updated" class="detail">⏰ Last Updated: <span class="highlight">N/A</span></div>
+      <div id="created-date" class="detail">⏰ Last Updated: <span class="highlight">N/A</span></div>
+      <div id="last-updated" class="detail">📅 Created: <span class="highlight">N/A</span></div>
       <div id="island-status" class="detail">✅ Status: <span class="highlight">N/A</span></div>
 
-     
+      <!-- Ratings -->
       <div class="ratings-container detail">
         <div id="ratings-summary">⭐ Ratings: <span class="highlight">N/A</span></div>
         <div id="ratings-details" class="ratings-details"></div>
@@ -221,42 +221,43 @@ async function searchIsland() {
       return;
     }
 
-   
+    // Update Card Information
     const card = document.getElementById("island-card");
     card.style.display = "block";
 
-    
+    // Set Island Image and Background
     document.getElementById("island-image").style.backgroundImage = island.image ? `url(${island.image})` : "none";
     document.getElementById("island-image").onclick = function() {
       openFullscreen(island.image);
     };
 
-   
+    // If lobbyImage exists, apply it as the background with blur effect
     if (island.lobbyImage) {
-      document.body.classList.add('with-lobby-image'); 
-      document.body.style.backgroundImage = `url(${island.lobbyImage})`; 
+      document.body.classList.add('with-lobby-image'); // Apply blur effect
+      document.body.style.backgroundImage = `url(${island.lobbyImage})`; // Set lobby image as background
     } else {
-      
-      document.body.classList.remove('with-lobby-image'); 
-      document.body.style.backgroundImage = `url(${island.image})`; 
+      // If no lobbyImage, use the main image as the background
+      document.body.classList.remove('with-lobby-image'); // Remove blur effect
+      document.body.style.backgroundImage = `url(${island.image})`; // Set main image as background
     }
 
     document.getElementById("island-title").innerText = island.title || "No Title";
     document.getElementById("island-description").innerHTML = `📖 Description: <span class="highlight">${island.description || "No description available."}</span>`;
     document.getElementById("island-creator").innerHTML = `🧑‍🎤 Creator: <span class="highlight">${island.creator || "Unknown"}</span>`;
-    document.getElementById("created-date").innerHTML = `📅 Created: <span class="highlight">${island.createdDate ? new Date(island.createdDate).toLocaleDateString() : "N/A"}</span>`;
-    document.getElementById("last-updated").innerHTML = `⏰ Last Updated: <span class="highlight">${island.publishedDate ? new Date(island.publishedDate).toLocaleDateString() : "N/A"}</span>`;
+    document.getElementById("created-date").innerHTML = `⏰ Last Updated: <span class="highlight">${island.createdDate ? new Date(island.createdDate).toLocaleDateString() : "N/A"}</span>`;
+    document.getElementById("last-updated").innerHTML = `📅 Created: <span class="highlight">${island.publishedDate ? new Date(island.publishedDate).toLocaleDateString() : "N/A"}</span>`;
     document.getElementById("island-status").innerHTML = `🟢 Status: <span class="highlight">${island.xp && island.xp.enabled ? "Awarding XP" : "Calibrating"}</span>`;
 
-
+    // Ratings
     const mainRating = island.ratings?.boards?.PEGI?.rating || "N/A";
     const allRatings = Object.entries(island.ratings?.boards || {}).map(([board, { rating }]) => `${board}: ${rating}`).join("<br>");
     document.getElementById("ratings-summary").innerHTML = `⭐ Ratings: <span class="highlight">${mainRating}</span>`;
     document.getElementById("ratings-details").innerHTML = allRatings;
 
-
+    // Tags
     document.getElementById("tags").innerHTML = `🏷️ Tags: <span class="highlight">${island.tags?.join(", ") || "None"}</span>`;
 
+    // Island Code
     const islandCode = island.code || "N/A";
     document.getElementById("code-text").innerText = islandCode;
   } catch (error) {
