@@ -5,18 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fortnite Island Explorer</title>
   <style>
-    /* General Styling */
+   
     body {
   font-family: 'Arial', sans-serif;
   margin: 0;
   padding: 0;
   color: #fff;
-  background-color: #000; /* Set background color to black */
+  background-color: #000; 
   overflow-x: hidden;
 }
 
 
-    /* Blurred Background (Only if lobbyImage exists) */
+    
     body.with-lobby-image::before {
       content: '';
       position: fixed;
@@ -32,14 +32,14 @@
       opacity: 0.75;
     }
 
-    /* Container */
+    
     .container {
       max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
     }
 
-    /* Search Bar */
+   
     .search-box {
       display: flex;
       justify-content: center;
@@ -72,7 +72,7 @@
       background-color: #e65200;
     }
 
-    /* Card Design */
+    
     .card {
       display: none;
       background-color: rgba(0, 0, 0, 0.85);
@@ -84,7 +84,7 @@
       padding-bottom: 20px;
     }
 
-    /* Island Image */
+   
     .island-image {
       width: 100%;
       height: 350px;
@@ -94,7 +94,7 @@
       cursor: pointer;
     }
 
-    /* Island Title */
+   
     .card-header {
       font-size: 40px;
       font-weight: bold;
@@ -190,7 +190,7 @@
       <div id="island-creator" class="detail">🧑‍🎤 Creator: <span class="highlight">N/A</span></div>
       <div id="created-date" class="detail">⏰ Last Updated: <span class="highlight">N/A</span></div>
       <div id="last-updated" class="detail">📅 Created: <span class="highlight">N/A</span></div>
-      <div id="island-status" class="detail">✅ Status: <span class="highlight">N/A</span></div>
+      <div id="island-status" class="detail">✅ XP Status: <span class="highlight">N/A</span></div>
 
       <!-- Ratings -->
       <div class="ratings-container detail">
@@ -246,7 +246,7 @@ async function searchIsland() {
     document.getElementById("island-creator").innerHTML = `🧑‍🎤 Creator: <span class="highlight">${island.creator || "Unknown"}</span>`;
     document.getElementById("created-date").innerHTML = `⏰ Last Updated: <span class="highlight">${island.createdDate ? new Date(island.createdDate).toLocaleDateString() : "N/A"}</span>`;
     document.getElementById("last-updated").innerHTML = `📅 Created: <span class="highlight">${island.publishedDate ? new Date(island.publishedDate).toLocaleDateString() : "N/A"}</span>`;
-    document.getElementById("island-status").innerHTML = `🟢 Status: <span class="highlight">${island.xp && island.xp.enabled ? "Awarding XP" : "Calibrating"}</span>`;
+    document.getElementById("island-status").innerHTML = `✅ XP Status: <span class="highlight">${island.xp && island.xp.enabled ? "Awarding XP" : "Calibrating"}</span>`;
 
     // Ratings
     const mainRating = island.ratings?.boards?.PEGI?.rating || "N/A";
