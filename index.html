@@ -1,297 +1,228 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fortnite Island Explorer</title>
-  <style>
-   
-    body {
-  font-family: 'Arial', sans-serif;
-  margin: 0;
-  padding: 0;
-  color: #fff;
-  background-color: #000; 
-  overflow-x: hidden;
-}
-
-
-    
-    body.with-lobby-image::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      filter: blur(15px);
-      opacity: 0.75;
-    }
-
-    
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-
-   
-    .search-box {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-
-    #search {
-      width: 60%;
-      padding: 15px 25px;
-      border-radius: 10px;
-      border: 1px solid #555;
-      background-color: #1c1c1c;
-      color: #fff;
-      font-size: 20px;
-    }
-
-    .button {
-      padding: 15px 25px;
-      margin-left: 15px;
-      background-color: #ff5e00;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 18px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-
-    .button:hover {
-      background-color: #e65200;
-    }
-
-    
-    .card {
-      display: none;
-      background-color: rgba(0, 0, 0, 0.85);
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-      text-align: center;
-      color: #fff;
-      padding-bottom: 20px;
-    }
-
-   
-    .island-image {
-      width: 100%;
-      height: 350px;
-      background-size: cover;
-      background-position: center;
-      margin-bottom: 20px;
-      cursor: pointer;
-    }
-
-   
-    .card-header {
-      font-size: 40px;
-      font-weight: bold;
-      color: #ff5e00;
-      margin-top: 20px;
-    }
-
-    .details {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      padding: 30px;
-      gap: 30px;
-    }
-
-    .detail {
-      flex: 1 1 250px;
-      font-size: 22px;
-      text-align: left;
-      color: #ccc;
-    }
-
-    .highlight {
-      color: #ffc107;
-      font-weight: bold;
-    }
-
-    .tags {
-      margin-top: 20px;
-      font-size: 20px;
-      color: #aaa;
-    }
-
-    .ratings-container {
-      position: relative;
-    }
-
-    .show-more-button {
-      background-color: #444;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 12px 25px;
-      margin-top: 20px;
-      cursor: pointer;
-      font-size: 18px;
-    }
-
-    .show-more-button:hover {
-      background-color: #666;
-    }
-
-    .ratings-details {
-      display: none;
-      margin-top: 20px;
-      text-align: left;
-      font-size: 18px;
-      color: #ccc;
-    }
-
-    /* Island Code Style */
-    .island-code {
-      font-size: 22px;
-      font-weight: bold;
-      color: #00b5b8;
-      cursor: pointer;
-      text-decoration: underline;
-      margin-top: 20px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortnite Map Details</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-900 text-white font-sans">
+    <div class="container mx-auto p-6">
+        <!-- Custom Error Alert -->
+        <div id="errorAlert" class="hidden bg-red-600 text-white p-4 rounded-lg shadow-lg mb-6 flex justify-between items-center">
+            <span id="errorText">Error: Something went wrong.</span>
+            <button onclick="dismissError()" class="bg-gray-800 px-4 py-2 rounded-lg">Dismiss</button>
+        </div>
 
-<div class="container">
-  <div class="search-box">
-    <input type="text" id="search" placeholder="🔍 Enter island code" />
-    <button class="button" onclick="searchIsland()">Search 🌍</button>
-  </div>
+        <!-- Help Section -->
+        <div class="mb-6 bg-gray-800 p-4 rounded-lg shadow-lg">
+            <h2 class="text-xl font-bold">💡 How to Use</h2>
+            <p class="text-gray-300 mt-2">Enter a Fortnite map code in the search bar to see details. Save your favorite maps and view your search history. Click on the map image to view it in full screen.</p>
+        </div>
 
-  <div id="island-card" class="card">
-    <!-- Island Image -->
-    <div id="island-image" class="island-image"></div>
+        <!-- Search Section -->
+        <div class="mb-8 text-center">
+            <h1 class="text-3xl font-bold mb-4">Fortnite Creative Maps</h1>
+            <p class="text-gray-400 mb-4">Enter a map code to get details about the creative island.</p>
+            <input id="mapCode" type="text" placeholder="Enter map code (e.g., 1234-5678-9123)" class="p-2 w-1/2 text-black rounded">
+            <button onclick="fetchMapDetails()" class="bg-yellow-500 text-black font-bold px-6 py-2 rounded hover:bg-yellow-600">Search</button>
+        </div>
 
-    <!-- Island Title -->
-    <div class="card-header" id="island-title">🏝️ Island Title</div>
+        <!-- Map Details Section -->
+        <div id="mapDetails" class="hidden bg-gray-800 rounded-lg shadow-lg flex flex-col md:flex-row overflow-hidden">
+            <!-- Image Section -->
+            <div class="w-full md:w-1/2 cursor-pointer" id="mapImageContainer">
+                <img id="mapImage" src="" alt="Map Image" class="w-full h-full object-cover">
+            </div>
 
-    <!-- Island Code -->
-    <div id="island-code" class="island-code" onclick="copyIslandCode()">Island Code: <span id="code-text">N/A</span></div>
+            <!-- Details Section -->
+            <div class="w-full md:w-1/2 p-6">
+                <h1 id="mapTitle" class="text-3xl font-bold mb-2"></h1>
+                <p class="text-gray-400 mb-4">By <span id="mapCreator" class="text-yellow-400"></span></p>
+                <div id="mapTags" class="flex flex-wrap gap-2 mb-4"></div>
+                <p id="mapIntroduction" class="mb-4 text-gray-300 italic"></p>
+                <p id="mapDescription" class="mb-4 text-gray-300"></p>
 
-    <!-- Island Details -->
-    <div class="details">
-      <div id="island-description" class="detail">📖 Description: <span class="highlight">N/A</span></div>
-      <div id="island-creator" class="detail">🧑‍🎤 Creator: <span class="highlight">N/A</span></div>
-      <div id="created-date" class="detail">⏰ Last Updated: <span class="highlight">N/A</span></div>
-      <div id="last-updated" class="detail">📅 Created: <span class="highlight">N/A</span></div>
-      <div id="island-status" class="detail">✅ XP Status: <span class="highlight">N/A</span></div>
+                <!-- Map Stats -->
+                <div class="grid grid-cols-2 gap-4 text-sm text-gray-400 mb-6">
+                    <div>
+                        <p>Release Date:</p>
+                        <p id="mapReleaseDate" class="text-white"></p>
+                    </div>
+                    <div>
+                        <p>XP Status:</p>
+                        <p id="mapXPStatus" class="text-white"></p>
+                    </div>
+                </div>
 
-      <!-- Ratings -->
-      <div class="ratings-container detail">
-        <div id="ratings-summary">⭐ Ratings: <span class="highlight">N/A</span></div>
-        <div id="ratings-details" class="ratings-details"></div>
-        <button id="toggle-ratings" class="show-more-button" onclick="toggleRatings()">Show More 📊</button>
-      </div>
+                <!-- Play Now Button -->
+                <div class="flex items-center gap-4">
+                    <a id="playNowButton" href="#" target="_blank" class="bg-yellow-500 text-black font-bold px-6 py-3 rounded hover:bg-yellow-600">
+                        PLAY NOW
+                    </a>
+                    <p class="text-gray-400 text-sm">Map Code: <span id="mapCodeDisplay" class="text-white font-bold"></span></p>
+                </div>
 
-      <div id="tags" class="tags">🏷️ Tags: <span class="highlight">N/A</span></div>
+                <!-- Save as Favorite Button -->
+                <button onclick="saveFavorite()" class="mt-4 bg-blue-500 text-white font-bold px-6 py-2 rounded hover:bg-blue-600">
+                    Save as Favorite
+                </button>
+            </div>
+        </div>
+
+        <!-- Search History Section -->
+        <div class="mt-8">
+            <h2 class="text-xl font-bold mb-4">📜 Search History</h2>
+            <ul id="searchHistory" class="bg-gray-800 p-4 rounded-lg shadow-lg space-y-2"></ul>
+        </div>
+
+        <!-- Favorite Maps Section -->
+        <div class="mt-8">
+            <h2 class="text-xl font-bold mb-4">⭐ Favorite Maps</h2>
+            <ul id="favoriteMaps" class="bg-gray-800 p-4 rounded-lg shadow-lg space-y-2"></ul>
+        </div>
+
+        <!-- Fullscreen Modal -->
+        <div id="fullscreenModal" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-90 flex justify-center items-center">
+            <img id="fullscreenImage" src="" class="max-w-full max-h-full">
+            <button onclick="closeFullscreen()" class="absolute top-4 right-4 bg-gray-800 text-white px-4 py-2 rounded">Close</button>
+        </div>
     </div>
-  </div>
-</div>
 
-<script>
-async function searchIsland() {
-  const query = document.getElementById("search").value.trim();
-  const API_KEY = "eadee0b6-665fb82d-1a863033-2f764868"; // Replace with your actual API key
-  const url = `https://fortniteapi.io/v1/creative/island?code=${query}`;
+    <script>
+        const API_KEY = "eadee0b6-665fb82d-1a863033-2f764868"; // Replace with your API key
 
-  try {
-    const response = await fetch(url, { headers: { Authorization: API_KEY } });
-    if (!response.ok) throw new Error("Island not found or API error.");
+        const searchHistory = JSON.parse(localStorage.getItem("searchHistory")) || [];
+        const favoriteMaps = JSON.parse(localStorage.getItem("favoriteMaps")) || [];
 
-    const { island } = await response.json();
+        document.addEventListener("DOMContentLoaded", () => {
+            renderSearchHistory();
+            renderFavorites();
+        });
 
-    if (!island) {
-      alert("Island data not found.");
-      return;
-    }
+        async function fetchMapDetails(code = null) {
+            const mapCode = code || document.getElementById("mapCode").value;
+            if (!mapCode) return showError("Please enter a valid map code!");
 
-    // Update Card Information
-    const card = document.getElementById("island-card");
-    card.style.display = "block";
+            try {
+                const response = await fetch(`https://fortniteapi.io/v1/creative/island?code=${mapCode}`, {
+                    headers: { "Authorization": API_KEY }
+                });
+                const data = await response.json();
 
-    // Set Island Image and Background
-    document.getElementById("island-image").style.backgroundImage = island.image ? `url(${island.image})` : "none";
-    document.getElementById("island-image").onclick = function() {
-      openFullscreen(island.image);
-    };
+                if (!data.result) return showError("Map not found. Please try another code!");
 
-    // If lobbyImage exists, apply it as the background with blur effect
-    if (island.lobbyImage) {
-      document.body.classList.add('with-lobby-image'); // Apply blur effect
-      document.body.style.backgroundImage = `url(${island.lobbyImage})`; // Set lobby image as background
-    } else {
-      // If no lobbyImage, use the main image as the background
-      document.body.classList.remove('with-lobby-image'); // Remove blur effect
-      document.body.style.backgroundImage = `url(${island.image})`; // Set main image as background
-    }
+                const island = data.island;
 
-    document.getElementById("island-title").innerText = island.title || "No Title";
-    document.getElementById("island-description").innerHTML = `📖 Description: <span class="highlight">${island.description || "No description available."}</span>`;
-    document.getElementById("island-creator").innerHTML = `🧑‍🎤 Creator: <span class="highlight">${island.creator || "Unknown"}</span>`;
-    document.getElementById("created-date").innerHTML = `⏰ Last Updated: <span class="highlight">${island.createdDate ? new Date(island.createdDate).toLocaleDateString() : "N/A"}</span>`;
-    document.getElementById("last-updated").innerHTML = `📅 Created: <span class="highlight">${island.publishedDate ? new Date(island.publishedDate).toLocaleDateString() : "N/A"}</span>`;
-    document.getElementById("island-status").innerHTML = `✅ XP Status: <span class="highlight">${island.xp && island.xp.enabled ? "Awarding XP" : "Calibrating"}</span>`;
+                // Populate map details
+                document.getElementById("mapTitle").innerText = island.title;
+                document.getElementById("mapCreator").innerText = island.creator;
+                document.getElementById("mapIntroduction").innerText = island.introduction || "No introduction available.";
+                document.getElementById("mapDescription").innerText = island.description || "No description available.";
+                document.getElementById("mapReleaseDate").innerText = new Date(island.publishedDate).toLocaleDateString();
+                document.getElementById("mapXPStatus").innerText = island.xp?.enabled ? "Awarding XP" : "No XP Available";
+                document.getElementById("mapCodeDisplay").innerText = island.code;
+                document.getElementById("playNowButton").href = `https://www.fortnite.com/play/island/${island.code}`;
+                document.getElementById("mapImage").src = island.image || "https://via.placeholder.com/1920x1080?text=No+Image";
 
-    // Ratings
-    const mainRating = island.ratings?.boards?.PEGI?.rating || "N/A";
-    const allRatings = Object.entries(island.ratings?.boards || {}).map(([board, { rating }]) => `${board}: ${rating}`).join("<br>");
-    document.getElementById("ratings-summary").innerHTML = `⭐ Ratings: <span class="highlight">${mainRating}</span>`;
-    document.getElementById("ratings-details").innerHTML = allRatings;
+                // Add tags
+                const tagsContainer = document.getElementById("mapTags");
+                tagsContainer.innerHTML = ""; // Clear old tags
+                if (island.tags) {
+                    island.tags.forEach(tag => {
+                        const tagElement = document.createElement("span");
+                        tagElement.className = "bg-gray-700 text-xs text-white px-3 py-1 rounded";
+                        tagElement.innerText = tag;
+                        tagsContainer.appendChild(tagElement);
+                    });
+                }
 
-    // Tags
-    document.getElementById("tags").innerHTML = `🏷️ Tags: <span class="highlight">${island.tags?.join(", ") || "None"}</span>`;
+                saveSearchHistory({ code: island.code, title: island.title, tags: island.tags });
+                document.getElementById("mapDetails").classList.remove("hidden");
+            } catch (error) {
+                showError("An error occurred while fetching map details.");
+            }
+        }
 
-    // Island Code
-    const islandCode = island.code || "N/A";
-    document.getElementById("code-text").innerText = islandCode;
-  } catch (error) {
-    alert("Error: " + error.message);
-  }
-}
+        function saveSearchHistory(map) {
+            if (!searchHistory.find(m => m.code === map.code)) {
+                searchHistory.unshift(map);
+                if (searchHistory.length > 5) searchHistory.pop();
+                localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
+                renderSearchHistory();
+            }
+        }
 
-function toggleRatings() {
-  const ratingsDetails = document.getElementById("ratings-details");
-  const toggleButton = document.getElementById("toggle-ratings");
+        function saveFavorite() {
+            const mapCode = document.getElementById("mapCodeDisplay").innerText;
+            const mapTitle = document.getElementById("mapTitle").innerText;
+            const tags = Array.from(document.getElementById("mapTags").children).map(tag => tag.innerText);
 
-  if (ratingsDetails.style.display === "none" || ratingsDetails.style.display === "") {
-    ratingsDetails.style.display = "block";
-    toggleButton.innerText = "Show Less 📉";
-  } else {
-    ratingsDetails.style.display = "none";
-    toggleButton.innerText = "Show More 📊";
-  }
-}
+            if (!favoriteMaps.find(m => m.code === mapCode)) {
+                favoriteMaps.push({ code: mapCode, title: mapTitle, tags });
+                localStorage.setItem("favoriteMaps", JSON.stringify(favoriteMaps));
+                renderFavorites();
+            }
+        }
 
-function openFullscreen(image) {
-  const fullscreenWindow = window.open();
-  fullscreenWindow.document.write(`<html><body><img src="${image}" style="width:100%;height:auto;"></body></html>`);
-}
+        function removeFavorite(code) {
+            const index = favoriteMaps.findIndex(m => m.code === code);
+            if (index !== -1) {
+                favoriteMaps.splice(index, 1);
+                localStorage.setItem("favoriteMaps", JSON.stringify(favoriteMaps));
+                renderFavorites();
+            }
+        }
 
-function copyIslandCode() {
-  const islandCode = document.getElementById("code-text").innerText;
-  navigator.clipboard.writeText(islandCode).then(() => {
-    alert(`Island code "${islandCode}" copied to clipboard! 📋`);
-  }).catch(err => {
-    alert("Failed to copy: " + err);
-  });
-}
-</script>
+        function renderSearchHistory() {
+            const historyContainer = document.getElementById("searchHistory");
+            historyContainer.innerHTML = searchHistory.map(map => `
+                <li>
+                    <button onclick="fetchMapDetails('${map.code}')" class="text-yellow-400 hover:underline">${map.title}</button>
+                    <div class="flex flex-wrap gap-2 mt-1">
+                        ${map.tags?.map(tag => `<span class="bg-gray-700 text-xs text-white px-3 py-1 rounded">${tag}</span>`).join("") || ""}
+                    </div>
+                </li>
+            `).join("");
+        }
 
+        function renderFavorites() {
+            const favoritesContainer = document.getElementById("favoriteMaps");
+            favoritesContainer.innerHTML = favoriteMaps.map(map => `
+                <li>
+                    <button onclick="fetchMapDetails('${map.code}')" class="text-yellow-400 hover:underline">${map.title}</button>
+                    <div class="flex flex-wrap gap-2 mt-1">
+                        ${map.tags?.map(tag => `<span class="bg-gray-700 text-xs text-white px-3 py-1 rounded">${tag}</span>`).join("") || ""}
+                    </div>
+                    <button onclick="removeFavorite('${map.code}')" class="ml-4 text-red-500 hover:underline">Remove</button>
+                </li>
+            `).join("");
+        }
+
+        function showError(message) {
+            const errorAlert = document.getElementById("errorAlert");
+            document.getElementById("errorText").innerText = message;
+            errorAlert.classList.remove("hidden");
+        }
+
+        function dismissError() {
+            document.getElementById("errorAlert").classList.add("hidden");
+        }
+
+        function openFullscreen() {
+            const mapImage = document.getElementById("mapImage").src;
+            const fullscreenModal = document.getElementById("fullscreenModal");
+            const fullscreenImage = document.getElementById("fullscreenImage");
+
+            fullscreenImage.src = mapImage;
+            fullscreenModal.classList.remove("hidden");
+        }
+
+        function closeFullscreen() {
+            document.getElementById("fullscreenModal").classList.add("hidden");
+        }
+
+        document.getElementById("mapImageContainer").addEventListener("click", openFullscreen);
+    </script>
 </body>
 </html>
