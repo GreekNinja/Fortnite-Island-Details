@@ -1,719 +1,560 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortnite Map Details - Animated</title>
+    <title>Fortnite Map Finder - Advanced Charts</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/date-fns/1.30.1/date_fns.min.js"></script>
+
+
     <style>
-        /* Custom Styles for a Futuristic/Tech Aesthetic */
-        body {
-            font-family: 'Rajdhani', sans-serif;
-            /* More complex background with subtle animation */
-            background: linear-gradient(135deg, #0a192f, #1a2a4a, #0a192f);
-            background-size: 400% 400%;
-            animation: gradientAnimation 15s ease infinite;
-            color: #e2e8f0; /* Light gray text */
-            min-height: 100vh;
-            padding: 1rem;
-            overflow-x: hidden; /* Prevent horizontal scroll */
+        :root {
+            --dark-background: #121212;
+            --dark-panel: #1c1c1c;
+            --dark-tag: #2a2d34;
+            --bright-yellow: #F8FF00;
+            --text-light: #e0e0e0;
+            --text-medium: #a0a0a0;
+            --text-dark: #000000;
+            --red-error: #e53e3e;
+            --green-success: #4caf50;
+            --chart-green: rgba(4, 224, 158, 1);
+            --chart-blue: #5865f2;
         }
+        body { background-color: var(--dark-background); font-family: 'Roboto', sans-serif; color: var(--text-light); min-height: 100vh; padding: 2rem 1rem; }
+        .container { width: 100%; max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 2rem; }
+        
+        /* Estilos generales (sin cambios) */
+        .search-container, .list-section { background-color: var(--dark-panel); padding: 1.5rem; border-radius: 0.5rem; }
+        .search-container h2 { font-family: 'Anton', sans-serif; color: var(--text-light); font-size: 2rem; text-align: center; margin-bottom: 0.5rem; }
+        .search-container p { text-align: center; color: var(--text-medium); margin-bottom: 1.5rem; }
+        .search-box { display: flex; gap: 1rem; }
+        #mapCodeInput { flex-grow: 1; background-color: var(--dark-tag); border: 2px solid var(--dark-tag); color: var(--text-light); padding: 0.75rem 1rem; border-radius: 0.25rem; font-size: 1rem; transition: border-color 0.2s ease; }
+        #mapCodeInput:focus { outline: none; border-color: var(--bright-yellow); }
+        #searchButton { background-color: var(--bright-yellow); color: var(--text-dark); font-family: 'Anton', sans-serif; font-size: 1.25rem; padding: 0.5rem 2rem; border: none; border-radius: 0.25rem; cursor: pointer; transition: transform 0.2s ease; }
+        #searchButton:hover { transform: scale(1.05); }
+        #mapDetails.map-card { background-color: var(--dark-panel); border-radius: 0.5rem; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); }
+        .map-info-panel { padding: 2rem; display: flex; flex-direction: column; }
+        .image-container { background-color: #000; min-height: 400px; }
+        #mapImage { width: 100%; height: 100%; object-fit: cover; }
+        h1#mapTitle { font-family: 'Anton', sans-serif; color: var(--bright-yellow); font-size: 3.5rem; line-height: 1; text-transform: uppercase; text-shadow: -2px -2px 0 var(--text-dark), 2px -2px 0 var(--text-dark), -2px 2px 0 var(--text-dark), 2px 2px 0 var(--text-dark); margin-bottom: 0.5rem; }
+        .creator-info { color: var(--text-medium); font-weight: 500; margin-bottom: 1.5rem; }
+        .creator-info span { color: var(--text-light); font-weight: 700; }
+        #mapTags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; min-height: 24px; }
+        .tag { background-color: var(--dark-tag); color: var(--text-light); padding: 0.4rem 1rem; border-radius: 0.25rem; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; }
+        #mapDescription { color: var(--text-medium); border-left: 3px solid var(--bright-yellow); padding-left: 1rem; margin-bottom: 1.5rem; font-style: italic; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--dark-tag); }
+        .stat-item p:first-child { color: var(--text-medium); font-size: 0.8rem; text-transform: uppercase; }
+        .stat-item p:last-child { color: var(--text-light); font-weight: 700; font-size: 1.1rem;}
+        .stat-item .fa-spin { color: var(--text-medium); }
+        .actions-container { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+        .action-button { display: block; width: 100%; background-color: var(--bright-yellow); color: var(--text-dark); font-family: 'Anton', sans-serif; font-size: 1.5rem; text-align: center; padding: 0.75rem 1rem; border-radius: 0.25rem; text-decoration: none; border: none; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .action-button:hover { transform: scale(1.03); box-shadow: 0 0 15px rgba(248, 255, 0, 0.4); }
+        #favoriteButton { background-color: var(--dark-tag); color: var(--text-light); font-size: 1.1rem; }
+        #favoriteButton:hover { background-color: #444; box-shadow: none; }
+        .map-code-container { background-color: var(--dark-tag); border-radius: 0.25rem; padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; }
+        #mapCodeDisplay { font-weight: 700; letter-spacing: 1px; }
+        .copy-icon { color: var(--text-medium); cursor: pointer; transition: color 0.2s ease; }
+        .copy-icon:hover { color: var(--text-light); }
+        #errorAlert { color: white; padding: 1rem 1.5rem; border-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; font-weight: 500; }
+        #errorAlert button { background: rgba(0,0,0,0.2); border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer; }
+        
+        /* --- ESTILOS MEJORADOS PARA GRÁFICOS --- */
+        .chart-section { background-color: var(--dark-panel); padding: 1.5rem 2rem; border-radius: 0.5rem; }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--dark-tag); padding-bottom: 1rem; margin-bottom: 1.5rem; }
+        .chart-header h2 { font-family: 'Anton', sans-serif; font-size: 1.75rem; color: var(--text-light); border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .chart-filters button { background-color: var(--dark-tag); color: var(--text-medium); font-weight: bold; border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer; transition: background-color 0.2s; }
+        .chart-filters button:hover { background-color: #444; }
+        .chart-filters button.active { background-color: var(--bright-yellow); color: var(--text-dark); }
+        
+        .player-count-summary { display: flex; justify-content: space-around; text-align: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;}
+        .summary-item .value { font-family: 'Anton', sans-serif; font-size: 3rem; line-height: 1; }
+        .summary-item .peak-value { color: var(--chart-green); }
+        .summary-item .label { color: var(--text-medium); font-size: 0.9rem; text-transform: uppercase; }
+        .summary-item .rank { background-color: var(--dark-tag); color: var(--bright-yellow); font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-left: 8px; }
 
-        @keyframes gradientAnimation {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        .hidden { display: none !important; }
+
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            #mapDetails.map-card { grid-template-columns: 1fr; }
+            .image-container { min-height: 250px; order: -1; }
+            .map-info-panel, .chart-section { padding: 1.5rem; }
+            h1#mapTitle { font-size: 2.5rem; }
+            .search-box, .player-count-summary, .chart-header { flex-direction: column; gap: 1.5rem; }
         }
-
-        h1, h2 {
-            font-family: 'Orbitron', sans-serif;
-            color: #00ffff; /* Cyan/Aqua for headings */
-            text-shadow: 0 0 8px rgba(0, 255, 255, 0.6); /* Neon glow */
-        }
-
-        /* Card/Container Styling with tech-inspired borders */
-        .tech-card {
-            background-color: rgba(17, 25, 40, 0.8); /* Darker background with transparency */
-            backdrop-filter: blur(10px); /* Stronger blur */
-            border: 2px solid #00ffff; /* Cyan border */
-            border-radius: 1rem;
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3); /* Cyan glow shadow */
-            position: relative;
-            overflow: hidden;
-            padding: 1.5rem;
-            animation: fadeInScale 0.5s ease-out; /* Entrance animation */
-        }
-
-         @keyframes fadeInScale {
-             0% { opacity: 0; transform: scale(0.95); }
-             100% { opacity: 1; transform: scale(1); }
-         }
-
-
-        /* Animated border effect */
-        .tech-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 2px solid transparent;
-            border-image: linear-gradient(45deg, #00ffff, #ff00ff, #00ffff);
-            border-image-slice: 1;
-            z-index: 1;
-            pointer-events: none;
-            animation: borderPulse 4s infinite ease-in-out;
-        }
-
-         @keyframes borderPulse {
-             0% { border-image-slice: 1; opacity: 0.8; }
-             50% { border-image-slice: 2; opacity: 1; }
-             100% { border-image-slice: 1; opacity: 0.8; }
-         }
-
-
-        /* Button Styling with energy effect */
-        button, a.button {
-            background: linear-gradient(45deg, #00ffff, #ff00ff); /* Gradient button */
-            color: #1a1a2e; /* Dark text on bright button */
-            font-family: 'Orbitron', sans-serif;
-            font-weight: bold;
-            padding: 0.75rem 2rem;
-            border-radius: 0.5rem;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            z-index: 1;
-            text-decoration: none; /* Remove underline from anchor buttons */
-            display: inline-block; /* Ensure anchor buttons behave like buttons */
-            text-align: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Button shadow */
-        }
-
-        button::before, a.button::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 300%;
-            height: 300%;
-            background: rgba(255, 255, 255, 0.2);
-            transition: all 0.6s ease;
-            border-radius: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            z-index: -1;
-        }
-
-        button:hover::before, a.button:hover::before {
-            transform: translate(-50%, -50%) scale(1);
-        }
-
-        button:hover, a.button:hover {
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.6); /* Cyan glow on hover */
-            transform: translateY(-3px); /* More pronounced lift */
-            opacity: 1; /* Ensure full opacity on hover */
-        }
-
-        /* Input Field Styling */
-        input[type="text"] {
-            background-color: rgba(26, 42, 74, 0.9); /* Dark blue with transparency */
-            color: #00ffff; /* Cyan text */
-            border: 2px solid #ff00ff; /* Magenta border */
-            border-radius: 0.5rem;
-            padding: 0.75rem 1rem;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        input[type="text"]:focus {
-            border-color: #00ffff; /* Cyan on focus */
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5); /* Cyan glow on focus */
-            outline: none;
-        }
-
-        /* Image Container Hover Effect */
-        .image-container {
-             position: relative;
-             overflow: hidden;
-             border-radius: 0.75rem; /* Rounded corners for image container */
-             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-             transition: transform 0.3s ease, box-shadow 0.3s ease;
-             /* Improved image size */
-             width: 100%; /* Image fills container width */
-             height: 350px; /* Slightly increased fixed height for consistency */
-        }
-
-        .image-container:hover {
-            transform: scale(1.03); /* Slightly enlarge image container */
-            box-shadow: 0 8px 20px rgba(0, 255, 255, 0.4); /* Cyan glow on hover */
-        }
-
-        /* Image Styling */
-        #mapImage {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Covers container without distortion */
-            display: block;
-            transition: transform 0.3s ease; /* Smooth scale on hover */
-        }
-
-         .image-container:hover #mapImage {
-             transform: scale(1.1); /* Scale image inside container on hover */
-         }
-
-        /* Overlay text on image hover */
-         .image-overlay {
-            position: absolute;
-            inset: 0;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 2; /* Ensure overlay is above image */
-         }
-
-         .image-container:hover .image-overlay {
-             opacity: 1;
-         }
-
-        /* Tag Styling */
-        .tag {
-            background-color: #ff00ff; /* Magenta background */
-            color: #1a1a2e; /* Dark text */
-            padding: 0.2rem 0.6rem;
-            border-radius: 9999px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        /* List Item Styling (History/Favorites) */
-        .list-item {
-            background-color: rgba(26, 42, 74, 0.7); /* Darker blue with transparency */
-            border: 1px solid #ff00ff; /* Magenta border */
-            padding: 1rem;
-            border-radius: 0.75rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 8px rgba(255, 0, 255, 0.2); /* Magenta glow shadow */
-            transition: background-color 0.2s ease, transform 0.2s ease;
-        }
-
-        .list-item:hover {
-            background-color: rgba(36, 52, 84, 0.8); /* Slightly lighter on hover */
-            transform: translateX(5px); /* Slide slightly on hover */
-        }
-
-        .list-item button {
-            background: none;
-            border: none;
-            padding: 0;
-            margin: 0;
-            font-size: 1rem;
-            text-align: left;
-            color: #00ffff; /* Cyan text */
-            text-decoration: none;
-            transition: color 0.2s ease;
-             /* Reset general button styles */
-            transform: none;
-            box-shadow: none;
-            opacity: 1;
-        }
-
-        .list-item button:hover {
-            color: #ff00ff; /* Magenta on hover */
-            text-decoration: underline;
-        }
-
-        .list-item .remove-btn {
-            color: #ff4136; /* Red for remove */
-            transition: color 0.2s ease;
-        }
-
-        .list-item .remove-btn:hover {
-            color: #e74c3c; /* Darker red on hover */
-        }
-
-        /* Fullscreen Modal Styling */
-        #fullscreenModal {
-            background-color: rgba(0, 0, 0, 0.98); /* Very dark overlay */
-        }
-
-        #fullscreenImage {
-            border: 3px solid #00ffff; /* Cyan border for fullscreen image */
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.8); /* Strong cyan glow */
-        }
-
-        .close-btn {
-            background-color: rgba(26, 42, 74, 0.7); /* Dark blue transparent background */
-            color: #ff00ff; /* Magenta 'X' */
-            border: 2px solid #ff00ff;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .close-btn:hover {
-            background-color: rgba(255, 0, 255, 0.8); /* Magenta on hover */
-            color: #1a1a2e; /* Dark text on hover */
-            transform: rotate(90deg); /* Rotate effect */
-        }
-
-        /* --- Custom Animations --- */
-
-        /* Animation for titles */
-        .animated-heading {
-            animation: textGlow 2s infinite alternate;
-        }
-
-        @keyframes textGlow {
-            0% { text-shadow: 0 0 8px rgba(0, 255, 255, 0.6); }
-            100% { text-shadow: 0 0 15px rgba(0, 255, 255, 1); }
-        }
-
-        /* Animation for buttons (more intense) */
-        button.animated-button, a.button.animated-button {
-             animation: pulseButton 1.5s infinite ease-in-out;
-        }
-
-        @keyframes pulseButton {
-            0% { transform: scale(1); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); }
-            50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(0, 255, 255, 0.8); }
-            100% { transform: scale(1); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); }
-        }
-
-        /* Animation for list items on hover */
-        .list-item:hover {
-             animation: listItemPulse 0.5s ease-out;
-        }
-
-        @keyframes listItemPulse {
-            0% { transform: scale(1) translateX(0); }
-            50% { transform: scale(1.01) translateX(5px); }
-            100% { transform: scale(1) translateX(0); }
-        }
-
-         /* Animation for image on hover (smoother) */
-         .image-container:hover #mapImage {
-             transform: scale(1.05); /* Slightly less scale */
-         }
-
-        /* Animation for Save as Favorite button click */
-        @keyframes favoriteBurst {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.5); opacity: 0.5; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        /* Animation for Remove Favorite button click */
-        @keyframes removeShrink {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(0.8); opacity: 0; }
-        }
-
-        /* Animation for spawning particles (hearts/stars) */
-        @keyframes particleFadeOut {
-            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(-50px) rotate(180deg); opacity: 0; }
-        }
-
-        .particle {
-            position: absolute;
-            font-size: 1.5rem;
-            pointer-events: none;
-            animation: particleFadeOut 1s ease-out forwards;
-            color: #ff00ff; /* Magenta color for particles */
-        }
-
-
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-900 via-purple-900 to-gray-900 text-white font-sans min-h-screen p-4">
-    <div class="container mx-auto p-6 max-w-4xl">
+<body>
+    
+    <div class="container">
+        
+        <div id="errorAlert" class="hidden"></div>
+        <div class="search-container"></div>
 
-        <div id="errorAlert" class="hidden bg-red-600 text-white p-4 rounded-lg shadow-lg mb-6 flex justify-between items-center tech-card !border-red-600 !shadow-red-600/50">
-            <span id="errorText">Error: Something went wrong.</span>
-            <button onclick="dismissError()" class="bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-300 ease-in-out">Dismiss</button>
-        </div>
+        <div id="mapDetails" class="map-card hidden"></div>
 
-        <div class="mb-8 text-center tech-card">
-            <h1 class="text-4xl font-bold mb-4 animated-heading">Fortnite Creative Maps</h1>
-            <p class="text-gray-400 mb-6">Enter a map code to get details.</p>
-            <div class="flex flex-col md:flex-row justify-center items-center gap-4">
-                <input id="mapCode" type="text" placeholder="Enter map code (e.g., 1234-5678-9123)" class="p-3 w-full md:w-1/2 rounded-lg focus:outline-none" style="color: #00ffff; background-color: rgba(26, 42, 74, 0.9); border: 2px solid #ff00ff;">
-                <button onclick="fetchMapDetails()" class="button animated-button">Search</button>
-            </div>
-        </div>
-
-        <div id="mapDetails" class="hidden bg-gray-800 rounded-lg shadow-lg flex flex-col md:flex-row overflow-hidden tech-card">
-            <div class="w-full md:w-1/2 cursor-pointer image-container" id="mapImageContainer">
-                 <img id="mapImage" src="" alt="Map Image" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='https://placehold.co/1920x1080/4a5568/ffffff?text=No+Image+Available';">
-                 <div class="image-overlay">
-                    <span class="text-white text-xl font-bold">Click to View Fullscreen</span>
-                 </div>
-            </div>
-
-            <div class="w-full md:w-1/2 p-6">
-                <h1 id="mapTitle" class="text-3xl font-bold mb-2 animated-heading"></h1>
-                <p class="text-gray-400 mb-4">By <span id="mapCreator" class="text-yellow-300 font-semibold"></span></p>
-                <div id="mapTags" class="flex flex-wrap gap-2 mb-4"></div>
-
-                <p id="mapIntroduction" class="mb-4 text-gray-300 italic border-l-4 border-yellow-500 pl-4"></p>
-                <p id="mapDescription" class="mb-4 text-gray-300"></p>
-
-                <div class="grid grid-cols-2 gap-4 text-sm text-gray-400 mb-6">
-                    <div>
-                        <p>Release Date:</p>
-                        <p id="mapReleaseDate" class="text-white font-semibold"></p>
-                    </div>
-                    <div>
-                        <p>XP Status:</p>
-                        <p id="mapXPStatus" class="text-white font-semibold"></p>
-                    </div>
+        <div id="playerChartSection" class="chart-section hidden">
+            <div class="chart-header">
+                <h2>PLAYER COUNT</h2>
+                <div class="chart-filters" id="playerChartFilters">
+                    <button data-range="1D" class="active">1D</button>
+                    <button data-range="7D">7D</button>
+                    <button data-range="1M">1M</button>
+                    <button data-range="1Y">1Y</button>
+                    <button data-range="ALL">ALL</button>
                 </div>
-
-                <div class="flex flex-col sm:flex-row items-center gap-4">
-                    <a id="playNowButton" href="#" target="_blank" class="button animated-button">
-                        PLAY NOW
-                    </a>
-                    <p class="text-gray-400 text-sm">Map Code: <span id="mapCodeDisplay" class="text-white font-bold font-game"></span></p>
-                </div>
-
-                <button onclick="saveFavorite(event)" class="button mt-4 animated-button" style="background: linear-gradient(45deg, #ff00ff, #00ffff);">
-                    ⭐ Save as Favorite
-                </button>
             </div>
+            <div class="player-count-summary"></div>
+            <canvas id="playerChart"></canvas>
         </div>
 
-        <div class="mt-8 tech-card">
-            <h2 class="text-2xl font-bold mb-4 animated-heading">📜 Search History</h2>
-            <ul id="searchHistory" class="space-y-4"></ul>
+        <div id="discoveryChartSection" class="chart-section hidden">
+            <div class="chart-header">
+                <h2>DISCOVERY TIMELINE</h2>
+            </div>
+            <p class="text-center text-gray-500 mb-4">NOTA: La API para estos datos no está disponible. Este es un ejemplo visual de cómo se vería.</p>
+            <canvas id="discoveryChart"></canvas>
         </div>
+        
+        <div id="historySection" class="list-section hidden"></div>
+        <div id="favoritesSection" class="list-section hidden"></div>
 
-        <div class="mt-8 tech-card">
-            <h2 class="text-2xl font-bold mb-4 animated-heading">⭐ Favorite Maps</h2>
-            <ul id="favoriteMaps" class="space-y-4"></ul>
-        </div>
-
-        <div id="fullscreenModal" class="hidden fixed top-0 left-0 w-full h-full modal-overlay flex justify-center items-center z-50 p-4">
-            <img id="fullscreenImage" src="" class="max-w-full max-h-full object-contain rounded-lg shadow-lg">
-            <button onclick="closeFullscreen()" class="absolute top-6 right-6 close-btn">X</button>
-        </div>
     </div>
 
     <script>
-        // IMPORTANT: Replace with your actual API key from FortniteAPI.io
-        const API_KEY = "eadee0b6-665fb82d-1a863033-2f764868";
+        // --- CONFIG & GLOBAL VARS ---
+        const FORTNITEAPI_KEY = "eadee0b6-665fb82d-1a863033-2f764868";
+        let searchHistory = JSON.parse(localStorage.getItem("searchHistory")) || [];
+        let favoriteMaps = JSON.parse(localStorage.getItem("favoriteMaps")) || [];
+        let myPlayerChart = null;
+        let myDiscoveryChart = null;
+        let fullPlayerData = []; // Almacenar todos los datos de jugadores para filtrar
 
-        // Load history and favorites from local storage
-        const searchHistory = JSON.parse(localStorage.getItem("searchHistory")) || [];
-        const favoriteMaps = JSON.parse(localStorage.getItem("favoriteMaps")) || [];
-
-        // Render history and favorites on page load
+        // --- INITIALIZATION ---
         document.addEventListener("DOMContentLoaded", () => {
+            // Render initial structure from JS to keep HTML clean
+            setupInitialHTML();
             renderSearchHistory();
             renderFavorites();
+            setupEventListeners();
         });
 
-        /**
-         * Fetches map details from the Fortnite API based on the provided code.
-         * @param {string|null} code - The map code to fetch. If null, it uses the value from the input field.
-         */
-        async function fetchMapDetails(code = null) {
-            const mapCode = code || document.getElementById("mapCode").value.trim(); // Trim whitespace
+        function setupInitialHTML() {
+            document.querySelector('.search-container').innerHTML = `
+                <h2>Fortnite Map Finder</h2>
+                <p>Enter a map code to get details.</p>
+                <div class="search-box">
+                    <input id="mapCodeInput" type="text" placeholder="e.g., 4272-2986-9914">
+                    <button id="searchButton">Search</button>
+                </div>`;
+            document.getElementById('mapDetails').innerHTML = `
+                <div class="map-info-panel">
+                    <h1 id="mapTitle"></h1>
+                    <p class="creator-info">By <span id="mapCreator"></span></p>
+                    <div id="mapTags"></div>
+                    <p id="mapDescription"></p>
+                    <div class="stats-grid">
+                        <div class="stat-item"><p>Live Players</p><p id="mapLivePlayers">--</p></div>
+                        <div class="stat-item"><p>Peak Players (24h)</p><p id="mapPeakPlayers">--</p></div>
+                        <div class="stat-item"><p>Created In</p><p id="mapTool"></p></div>
+                        <div class="stat-item"><p>Published</p><p id="mapReleaseDate"></p></div>
+                        <div class="stat-item"><p>Age Rating (PEGI)</p><p id="mapAgeRating"></p></div>
+                        <div class="stat-item"><p>XP Status</p><p id="mapXPStatus"></p></div>
+                    </div>
+                    <div class="actions-container">
+                        <a id="playNowButton" href="#" target="_blank" class="action-button">PLAY NOW</a>
+                        <button id="favoriteButton" class="action-button"><i class="fa-regular fa-star"></i> Save as Favorite</button>
+                        <div class="map-code-container">
+                            <span id="mapCodeDisplay"></span>
+                            <i class="fa-solid fa-copy copy-icon"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="image-container">
+                    <img id="mapImage" src="" alt="Map Image" onerror="this.onerror=null; this.src='https://placehold.co/800x800/1c1c1c/a0a0a0?text=No+Image';">
+                </div>`;
+             document.querySelector('.player-count-summary').innerHTML = `
+                <div class="summary-item">
+                    <p class="value" id="summaryLive">--</p>
+                    <p class="label">Players Right Now <span id="summaryRank" class="rank hidden"></span></p>
+                </div>
+                <div class="summary-item">
+                    <p class="value peak-value" id="summaryPeak24h">--</p>
+                    <p class="label">24-Hour Peak</p>
+                </div>
+                <div class="summary-item">
+                    <p class="value" id="summaryPeakAllTime">--</p>
+                    <p class="label" id="summaryPeakAllTimeLabel">All-Time Peak</p>
+                </div>`;
+            document.getElementById('historySection').innerHTML = `<h2><i class="fa-solid fa-clock-rotate-left"></i> Search History</h2><ul id="searchHistory"></ul>`;
+            document.getElementById('favoritesSection').innerHTML = `<h2><i class="fa-solid fa-star"></i> Favorite Maps</h2><ul id="favoriteMaps"></ul>`;
+            document.getElementById('errorAlert').innerHTML = `<span id="errorText"></span><button onclick="dismissError()">Dismiss</button>`;
+        }
+
+        function setupEventListeners() {
+            document.getElementById('searchButton').addEventListener('click', () => fetchMapDetails());
+            document.getElementById('mapCodeInput').addEventListener("keypress", (event) => {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    fetchMapDetails();
+                }
+            });
+            document.getElementById('favoriteButton').addEventListener('click', saveFavorite);
+            document.querySelector('.copy-icon').addEventListener('click', copyCode);
+            
+            // Event listeners para los filtros del gráfico de jugadores
+            document.getElementById('playerChartFilters').addEventListener('click', (event) => {
+                if (event.target.tagName === 'BUTTON') {
+                    const range = event.target.dataset.range;
+                    updatePlayerChartRange(range);
+                    
+                    // Manejar la clase 'active'
+                    document.querySelectorAll('#playerChartFilters button').forEach(btn => btn.classList.remove('active'));
+                    event.target.classList.add('active');
+                }
+            });
+        }
+        
+        // --- API FETCHING & DATA HANDLING ---
+        async function fetchMapDetails() {
+            const mapCode = document.getElementById('mapCodeInput').value.trim();
             if (!mapCode) {
                 showError("Please enter a valid map code!");
                 return;
             }
 
-            // Clear previous details and hide the section while loading
-            document.getElementById("mapDetails").classList.add("hidden");
-            // Optionally show a loading indicator here
+            document.getElementById('mapDetails').classList.add("hidden");
+            document.getElementById('playerChartSection').classList.add("hidden");
+            document.getElementById('discoveryChartSection').classList.add("hidden");
 
             try {
-                const response = await fetch(`https://fortniteapi.io/v1/creative/island?code=${mapCode}`, {
-                    headers: { "Authorization": API_KEY }
-                });
+                const response = await fetch(`https://fortniteapi.io/v1/creative/island?code=${mapCode}`, { headers: { "Authorization": FORTNITEAPI_KEY } });
                 const data = await response.json();
 
-                // Check if the API call was successful and returned a result
                 if (!data.result || !data.island) {
-                     // Check for specific error messages from the API if available
-                    const errorMessage = data.error || "Map not found. Please try another code!";
-                    showError(errorMessage);
+                    showError(data.error || "Map not found. Please check the code.");
                     return;
                 }
-
-                const island = data.island;
-
-                // Populate map details
-                document.getElementById("mapTitle").innerText = island.title;
-                document.getElementById("mapCreator").innerText = island.creator;
-                document.getElementById("mapIntroduction").innerText = island.introduction || "No introduction available.";
-                document.getElementById("mapDescription").innerText = island.description || "No description available.";
-                document.getElementById("mapReleaseDate").innerText = island.publishedDate ? new Date(island.publishedDate).toLocaleDateString() : 'N/A';
-                document.getElementById("mapXPStatus").innerText = island.xp?.enabled ? "Awarding XP" : "No XP Available";
-                document.getElementById("mapCodeDisplay").innerText = island.code;
-                document.getElementById("playNowButton").href = `https://www.fortnite.com/play/island/${island.code}`;
-
-                // Set map image, use placeholder if image is missing or fails to load
-                const mapImageElement = document.getElementById("mapImage");
-                mapImageElement.src = island.image || "https://placehold.co/1920x1080/4a5568/ffffff?text=No+Image+Available";
-                // The onerror attribute in the HTML handles the fallback if the provided URL fails
-
-                // Add tags
-                const tagsContainer = document.getElementById("mapTags");
-                tagsContainer.innerHTML = ""; // Clear old tags
-                if (island.tags && island.tags.length > 0) {
-                    island.tags.forEach(tag => {
-                        const tagElement = document.createElement("span");
-                        tagElement.className = "tag"; // Use the new tag class
-                        tagElement.innerText = tag;
-                        tagsContainer.appendChild(tagElement);
-                    });
-                } else {
-                     tagsContainer.innerHTML = '<span class="text-gray-400 text-sm">No tags available.</span>';
-                }
-
-
-                saveSearchHistory({ code: island.code, title: island.title, tags: island.tags });
-                document.getElementById("mapDetails").classList.remove("hidden");
-                // Scroll to map details section
-                document.getElementById("mapDetails").scrollIntoView({ behavior: 'smooth' });
-
+                
+                dismissError();
+                displayMapDetails(data.island);
+                fetchPlayerData(data.island.code);
+                saveSearchHistory({ code: data.island.code, title: data.island.title });
             } catch (error) {
-                console.error("Error fetching map details:", error);
-                showError("An error occurred while fetching map details. Please check the code and your API key.");
+                showError("An API error occurred. Please try again later.");
             }
         }
+        
+        async function fetchPlayerData(islandCode) {
+            const liveEl = document.getElementById("mapLivePlayers");
+            const peakEl = document.getElementById("mapPeakPlayers");
+            liveEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            peakEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-        /**
-         * Saves the searched map to local storage history.
-         * Keeps the history limited to the last 5 unique searches.
-         * @param {object} map - The map object to save ({ code, title, tags }).
-         */
+            try {
+                const response = await fetch(`https://fnzone.es/api/backend/v1/players/${islandCode}`);
+                if (!response.ok) throw new Error('Player data not OK');
+                
+                const data = await response.json();
+                if (!data.success) throw new Error('Player data API failure');
+
+                fullPlayerData = data.parsedData.map(d => ({ x: new Date(d.at), y: d.ccu })).reverse();
+                
+                const peakAllTime = data.highestValue?.ccu ?? 'N/A';
+                const peakDate = new Date(data.highestValue.at);
+
+                document.getElementById("summaryLive").innerText = fullPlayerData[fullPlayerData.length - 1].y;
+                document.getElementById("summaryPeakAllTime").innerText = peakAllTime;
+                document.getElementById("summaryPeakAllTimeLabel").innerText = `All-Time Peak ${peakDate.toLocaleDateString()}`;
+                
+                if (data.islandTop) {
+                    document.getElementById("summaryRank").innerText = data.islandTop;
+                    document.getElementById("summaryRank").classList.remove("hidden");
+                } else {
+                    document.getElementById("summaryRank").classList.add("hidden");
+                }
+
+                document.getElementById('playerChartSection').classList.remove("hidden");
+                // Por defecto, mostrar 1D
+                updatePlayerChartRange('1D');
+                document.querySelectorAll('#playerChartFilters button').forEach(btn => btn.classList.remove('active'));
+                document.querySelector('#playerChartFilters button[data-range="1D"]').classList.add('active');
+
+                // AÑADIR LLAMADA A LA API DE DISCOVERY AQUÍ CUANDO LA TENGAS
+                // fetchDiscoveryData(islandCode);
+
+            } catch (error) {
+                liveEl.innerText = 'N/A';
+                peakEl.innerText = 'N/A';
+                document.getElementById('playerChartSection').classList.add("hidden");
+            }
+        }
+        
+        // --- CHARTING FUNCTIONS ---
+        function updatePlayerChartRange(range) {
+            const now = new Date();
+            let startDate;
+
+            switch(range) {
+                case '1D':
+                    startDate = dateFns.subDays(now, 1);
+                    break;
+                case '7D':
+                    startDate = dateFns.subDays(now, 7);
+                    break;
+                case '1M':
+                    startDate = dateFns.subMonths(now, 1);
+                    break;
+                case '1Y':
+                    startDate = dateFns.subYears(now, 1);
+                    break;
+                case 'ALL':
+                default:
+                    startDate = new Date(0); // El inicio de los tiempos
+            }
+            
+            const filteredData = fullPlayerData.filter(d => d.x >= startDate);
+            
+            const livePlayers = filteredData.length > 0 ? filteredData[filteredData.length - 1].y : 'N/A';
+            const peak24h = filteredData.length > 0 ? Math.max(...filteredData.map(d => d.y)) : 'N/A';
+
+            document.getElementById("mapLivePlayers").innerText = livePlayers;
+            document.getElementById("mapPeakPlayers").innerText = peak24h;
+            document.getElementById("summaryPeak24h").innerText = peak24h;
+
+            createPlayerChart(filteredData);
+        }
+
+        function createPlayerChart(data) {
+            if (myPlayerChart) myPlayerChart.destroy();
+            
+            const ctx = document.getElementById('playerChart').getContext('2d');
+            myPlayerChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Players',
+                        data: data,
+                        borderColor: 'var(--chart-green)',
+                        backgroundColor: 'rgba(4, 224, 158, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: 'var(--chart-green)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: { unit: 'hour', tooltipFormat: 'MMM d, h:mm a', displayFormats: { hour: 'HH:mm' } },
+                            grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                            ticks: { color: 'var(--text-medium)' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                            ticks: { color: 'var(--text-medium)' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            mode: 'index', intersect: false,
+                            backgroundColor: 'rgba(28, 28, 28, 0.95)',
+                            borderColor: 'rgba(255, 255, 255, 0.1)', borderWidth: 1,
+                            titleFont: { size: 14, weight: 'bold' }, bodyFont: { size: 12 }, padding: 10,
+                            callbacks: {
+                                title: (ctx) => new Date(ctx[0].parsed.x).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short'})
+                            }
+                        }
+                    },
+                    interaction: { mode: 'index', intersect: false }
+                }
+            });
+        }
+        
+        /*
+        // --- FUNCIÓN DE PLANTILLA PARA EL GRÁFICO DE DISCOVERY ---
+        // Esta función está lista para usarse. Necesitas una API que devuelva los datos.
+        // El formato esperado de `discoveryData` es un array de objetos:
+        // [{ category: 'Nombre Categoria', position: 1, start: '2025-06-07T12:00:00Z', end: '2025-06-07T16:00:00Z' }, ...]
+        
+        function createDiscoveryChart(discoveryData) {
+            if (myDiscoveryChart) myDiscoveryChart.destroy();
+
+            const discoverySection = document.getElementById('discoveryChartSection');
+            if (!discoveryData || discoveryData.length === 0) {
+                discoverySection.classList.add('hidden');
+                return;
+            }
+            discoverySection.classList.remove('hidden');
+
+            const ctx = document.getElementById('discoveryChart').getContext('2d');
+            
+            const categories = [...new Set(discoveryData.map(item => item.category))];
+            const datasets = categories.map(cat => {
+                return {
+                    label: cat,
+                    data: discoveryData
+                        .filter(item => item.category === cat)
+                        .map(item => ({
+                            x: [new Date(item.start), new Date(item.end)],
+                            y: cat,
+                            position: item.position // Dato extra para el tooltip
+                        })),
+                    backgroundColor: 'var(--chart-blue)'
+                };
+            });
+
+            myDiscoveryChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: categories,
+                    datasets: datasets
+                },
+                options: {
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            type: 'time',
+                            min: dateFns.subDays(new Date(), 1), // Rango por defecto
+                            max: new Date(),
+                            time: { unit: 'hour' },
+                            grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                            ticks: { color: 'var(--text-medium)' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                            ticks: { color: 'var(--text-light)' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                             callbacks: {
+                                title: (ctx) => ctx[0].raw.y,
+                                label: (ctx) => {
+                                    const start = new Date(ctx.raw.x[0]);
+                                    const end = new Date(ctx.raw.x[1]);
+                                    const durationMs = end - start;
+                                    const durationMin = Math.round(durationMs / 60000);
+                                    
+                                    let formattedDuration = `${durationMin}m`;
+                                    if (durationMin >= 60) {
+                                        const hours = Math.floor(durationMin / 60);
+                                        const mins = durationMin % 60;
+                                        formattedDuration = `${hours}h ${mins}m`;
+                                    }
+
+                                    return [
+                                        `Position: #${ctx.raw.position}`,
+                                        `Start: ${start.toLocaleString()}`,
+                                        `End: ${end.toLocaleString()}`,
+                                        `Duration: ${formattedDuration}`
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        */
+
+        // --- DOM & LOCALSTORAGE FUNCTIONS (Helpers) ---
+        function displayMapDetails(island) {
+            let tool = 'Creative';
+            if (island.type === 'valkyrie:application') tool = 'UEFN';
+            else if (island.type) tool = island.type.toUpperCase();
+            const pegiRating = island.ratings?.boards?.PEGI?.rating.replace('PEGI_AGE_', '') ?? 'N/A';
+
+            document.getElementById("mapTitle").innerText = island.title || "Untitled Map";
+            document.getElementById("mapCreator").innerText = island.creator || "Unknown Creator";
+            document.getElementById("mapDescription").innerText = island.description || "No description.";
+            document.getElementById("mapTool").innerText = tool;
+            document.getElementById("mapReleaseDate").innerText = island.publishedDate ? new Date(island.publishedDate).toLocaleDateString() : 'N/A';
+            document.getElementById("mapAgeRating").innerText = pegiRating;
+            document.getElementById("mapXPStatus").innerText = island.xp?.enabled ? 'Awarding XP' : 'No XP';
+            document.getElementById("mapCodeDisplay").innerText = island.code;
+            document.getElementById("playNowButton").href = `https://www.fortnite.com/play/island/${island.code}`;
+            document.getElementById("mapImage").src = island.image || '';
+
+            const tagsContainer = document.getElementById("mapTags");
+            tagsContainer.innerHTML = "";
+            if (island.tags?.length > 0) {
+                island.tags.forEach(tag => {
+                    tagsContainer.innerHTML += `<span class="tag">${tag}</span>`;
+                });
+            }
+            
+            document.getElementById('mapDetails').classList.remove("hidden");
+        }
         function saveSearchHistory(map) {
-             // Remove existing entry with the same code to avoid duplicates and move to top
-            const existingIndex = searchHistory.findIndex(m => m.code === map.code);
-            if (existingIndex !== -1) {
-                searchHistory.splice(existingIndex, 1);
-            }
-
-            searchHistory.unshift(map); // Add to the beginning
-            if (searchHistory.length > 5) { // Keep only the last 5
-                searchHistory.pop();
-            }
+            searchHistory = searchHistory.filter(m => m.code !== map.code);
+            searchHistory.unshift(map);
+            if (searchHistory.length > 5) searchHistory.pop();
             localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
             renderSearchHistory();
         }
-
-        /**
-         * Saves the currently displayed map as a favorite in local storage and triggers particle animation.
-         * @param {Event} event - The click event.
-         */
-        function saveFavorite(event) {
+        function renderSearchHistory() {
+            const container = document.getElementById("searchHistory");
+            const section = document.getElementById("historySection");
+            if (searchHistory.length === 0) {
+                section.classList.add("hidden");
+                return;
+            }
+            section.classList.remove("hidden");
+            container.innerHTML = searchHistory.map(map => `<li class="list-item"><div class="info"><button onclick="fetchMapDetails('${map.code}')">${map.title}</button><p>${map.code}</p></div></li>`).join("");
+        }
+        function saveFavorite() {
             const mapCode = document.getElementById("mapCodeDisplay").innerText;
             const mapTitle = document.getElementById("mapTitle").innerText;
-            const tags = Array.from(document.getElementById("mapTags").children).map(tag => tag.innerText).filter(text => text !== 'No tags available.'); // Get tags, exclude placeholder text
-
-            if (!mapCode || !mapTitle) {
-                showError("No map details to save as favorite!");
-                return;
-            }
-
+            if (!mapCode || !mapTitle) return;
             if (!favoriteMaps.find(m => m.code === mapCode)) {
-                favoriteMaps.push({ code: mapCode, title: mapTitle, tags });
+                favoriteMaps.push({ code: mapCode, title: mapTitle });
                 localStorage.setItem("favoriteMaps", JSON.stringify(favoriteMaps));
                 renderFavorites();
-                // Trigger particle animation
-                createParticles(event.clientX, event.clientY, '⭐'); // Use star or heart emoji
-                // Optional: Show a success message
-                // showError("Map saved to favorites!", false);
-            } else {
-                 // Optional: Indicate it's already a favorite
-                 // showError("This map is already in your favorites!", false);
-            }
+            } else { showError("This map is already in your favorites.", false); }
         }
-
-        /**
-         * Removes a map from the favorite list by its code and triggers animation.
-         * @param {string} code - The map code to remove.
-         * @param {Event} event - The click event.
-         */
-        function removeFavorite(code, event) {
-            const index = favoriteMaps.findIndex(m => m.code === code);
-            if (index !== -1) {
-                // Optional: Add a shrink animation to the list item before removing
-                const listItem = event.target.closest('.list-item');
-                if (listItem) {
-                    listItem.style.animation = 'removeShrink 0.5s ease-out forwards';
-                    listItem.addEventListener('animationend', () => {
-                         favoriteMaps.splice(index, 1);
-                         localStorage.setItem("favoriteMaps", JSON.stringify(favoriteMaps));
-                         renderFavorites();
-                    }, { once: true });
-                } else {
-                    // Fallback if animation doesn't apply
-                    favoriteMaps.splice(index, 1);
-                    localStorage.setItem("favoriteMaps", JSON.stringify(favoriteMaps));
-                    renderFavorites();
-                }
-            }
+        function removeFavorite(code) {
+            favoriteMaps = favoriteMaps.filter(m => m.code !== code);
+            localStorage.setItem("favoriteMaps", JSON.stringify(favoriteMaps));
+            renderFavorites();
         }
-
-        /**
-         * Renders the search history list in the UI.
-         */
-        function renderSearchHistory() {
-            const historyContainer = document.getElementById("searchHistory");
-            if (searchHistory.length === 0) {
-                historyContainer.innerHTML = '<li class="text-gray-400 list-item">No search history yet.</li>';
-                return;
-            }
-            historyContainer.innerHTML = searchHistory.map(map => `
-                <li class="list-item">
-                    <div>
-                        <button onclick="fetchMapDetails('${map.code}')" class="text-yellow-300 hover:underline font-semibold">${map.title}</button>
-                        <p class="text-gray-400 text-sm">${map.code}</p>
-                        <div class="flex flex-wrap gap-1 mt-1">
-                            ${map.tags?.map(tag => `<span class="tag">${tag}</span>`).join("") || ""}
-                        </div>
-                    </div>
-                </li>
-            `).join("");
-        }
-
-        /**
-         * Renders the favorite maps list in the UI.
-         */
         function renderFavorites() {
-            const favoritesContainer = document.getElementById("favoriteMaps");
-             if (favoriteMaps.length === 0) {
-                favoritesContainer.innerHTML = '<li class="text-gray-400 list-item">No favorite maps saved yet.</li>';
+            const container = document.getElementById("favoriteMaps");
+            const section = document.getElementById("favoritesSection");
+            if (favoriteMaps.length === 0) {
+                section.classList.add("hidden");
                 return;
             }
-            favoritesContainer.innerHTML = favoriteMaps.map(map => `
-                <li class="list-item">
-                    <div>
-                        <button onclick="fetchMapDetails('${map.code}')" class="text-yellow-300 hover:underline font-semibold">${map.title}</button>
-                         <p class="text-gray-400 text-sm">${map.code}</p>
-                        <div class="flex flex-wrap gap-1 mt-1">
-                            ${map.tags?.map(tag => `<span class="tag">${tag}</span>`).join("") || ""}
-                        </div>
-                    </div>
-                    <button onclick="removeFavorite('${map.code}', event)" class="text-red-400 hover:text-red-500 text-sm ml-4 remove-btn">Remove</button>
-                </li>
-            `).join("");
+            section.classList.remove("hidden");
+            container.innerHTML = favoriteMaps.map(map => `<li class="list-item"><div class="info"><button onclick="fetchMapDetails('${map.code}')">${map.title}</button><p>${map.code}</p></div><button onclick="removeFavorite('${map.code}')" class="remove-btn"><i class="fa-solid fa-trash-can"></i></button></li>`).join("");
         }
-
-        /**
-         * Displays a custom error message.
-         * @param {string} message - The error message to display.
-         * @param {boolean} isError - True if it's an error, false for success/info (optional, defaults to true).
-         */
+        function copyCode() {
+            navigator.clipboard.writeText(document.getElementById('mapCodeDisplay').innerText).then(() => showError('Map code copied!', false));
+        }
         function showError(message, isError = true) {
-            const errorAlert = document.getElementById("errorAlert");
-            const errorText = document.getElementById("errorText");
-
-            errorText.innerText = message;
-            if (isError) {
-                 errorAlert.classList.remove("bg-green-600"); // Remove potential success color
-                 errorAlert.classList.add("bg-red-600"); // Add error color
-                 errorAlert.classList.add("!border-red-600", "!shadow-red-600/50"); // Add error specific tech-card styles
-                 errorAlert.classList.remove("!border-green-600", "!shadow-green-600/50"); // Remove success specific tech-card styles
-            } else {
-                 errorAlert.classList.remove("bg-red-600"); // Remove potential error color
-                 errorAlert.classList.add("bg-green-600"); // Add success color
-                 errorAlert.classList.add("!border-green-600", "!shadow-green-600/50"); // Add success specific tech-card styles
-                 errorAlert.classList.remove("!border-red-600", "!shadow-red-600/50"); // Remove error specific tech-card styles
-            }
-            errorAlert.classList.remove("hidden");
+            const el = document.getElementById("errorAlert");
+            document.getElementById("errorText").innerText = message;
+            el.style.backgroundColor = isError ? 'var(--red-error)' : 'var(--green-success)';
+            el.classList.remove("hidden");
         }
-
-        /**
-         * Dismisses the custom error/message alert.
-         */
         function dismissError() {
             document.getElementById("errorAlert").classList.add("hidden");
         }
-
-        /**
-         * Opens the fullscreen modal with the current map image.
-         */
-        function openFullscreen() {
-             const mapImageSrc = document.getElementById("mapImage").src;
-             if (!mapImageSrc || mapImageSrc.includes('placehold.co') || mapImageSrc.includes('No+Image+Available')) {
-                 // Don't open fullscreen if no valid image is loaded (check for placeholder text too)
-                 return;
-             }
-            const fullscreenModal = document.getElementById("fullscreenModal");
-            const fullscreenImage = document.getElementById("fullscreenImage");
-
-            fullscreenImage.src = mapImageSrc;
-            fullscreenModal.classList.remove("hidden");
-        }
-
-        /**
-         * Closes the fullscreen modal.
-         */
-        function closeFullscreen() {
-            document.getElementById("fullscreenModal").classList.add("hidden");
-        }
-
-        /**
-         * Creates and animates particles (emojis) at a given position.
-         * @param {number} x - The x-coordinate.
-         * @param {number} y - The y-coordinate.
-         * @param {string} emoji - The emoji character to use as a particle.
-         */
-        function createParticles(x, y, emoji) {
-            const numParticles = 15; // Number of particles
-            for (let i = 0; i < numParticles; i++) {
-                const particle = document.createElement('span');
-                particle.className = 'particle';
-                particle.innerText = emoji;
-                // Position particles randomly around the click point
-                const offsetX = (Math.random() - 0.5) * 60; // Random horizontal offset
-                const offsetY = (Math.random() - 0.5) * 60; // Random vertical offset
-                particle.style.left = `${x + offsetX}px`;
-                particle.style.top = `${y + offsetY}px`;
-                // Random delay for staggered effect
-                particle.style.animationDelay = `${Math.random() * 0.3}s`;
-                 // Randomize particle color slightly
-                const hue = Math.random() * 360;
-                particle.style.filter = `hue-rotate(${hue}deg)`;
-
-                document.body.appendChild(particle);
-
-                // Remove particle after animation ends
-                particle.addEventListener('animationend', () => {
-                    particle.remove();
-                });
-            }
-        }
-
-
-        // Add event listener to the map image container to open fullscreen on click
-        document.getElementById("mapImageContainer").addEventListener("click", openFullscreen);
-
-        // Add event listener to the input field for 'Enter' key press
-        document.getElementById("mapCode").addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                event.preventDefault(); // Prevent default form submission
-                fetchMapDetails(); // Trigger search
-            }
-        });
-
     </script>
 </body>
 </html>
