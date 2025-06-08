@@ -87,17 +87,86 @@
         .summary-item .value { font-family: 'Anton', sans-serif; font-size: 3rem; line-height: 1; text-shadow: 2px 3px 5px rgba(0,0,0,0.25); }
         .summary-item .label { color: var(--text-medium); font-size: 0.9rem; text-transform: uppercase; font-weight: bold; }
         .summary-item .rank { background-color: var(--dark-tag); color: var(--bright-yellow); font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-left: 8px; }
-        #errorAlert { color: white; padding: 1rem 1.5rem; border-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; font-weight: 500; }
         #summaryLive { color: var(--stat-green); }
         #summaryPeak24h { color: var(--stat-purple); }
         #summaryPeakAllTime { color: var(--stat-blue); }
+        
+        /* --- NEW: Custom Alert Styles --- */
+        #alert-container {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 0.75rem;
+            width: 350px;
+            max-width: 90%;
+        }
+
+        .alert {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            border-left: 5px solid;
+            animation: slideInUp 0.4s ease-out;
+            opacity: 1;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .alert.fade-out {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .alert-icon {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+
+        .alert-content {
+            flex-grow: 1;
+            font-weight: 500;
+        }
+
+        .alert.alert-error {
+            background-color: var(--dark-panel);
+            border-color: var(--red-error);
+            color: var(--text-light);
+        }
+        .alert.alert-error .alert-icon {
+            color: var(--red-error);
+        }
+
+        .alert.alert-success {
+            background-color: var(--dark-panel);
+            border-color: var(--green-success);
+            color: var(--text-light);
+        }
+        .alert.alert-success .alert-icon {
+            color: var(--green-success);
+        }
+
+        @keyframes slideInUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
 
         @media (max-width: 768px) { #mapDetails.map-card { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
+    <div id="alert-container"></div>
+
     <div class="container">
-        <div id="errorAlert" class="hidden"></div>
         <div class="search-wrapper">
             <input type="text" id="searchInput" placeholder="Search for maps or creators...">
             <div id="searchResults" class="hidden"></div>
@@ -151,7 +220,26 @@
                     e.target.classList.add('active');
                 }
             });
+
+            window.addEventListener('hashchange', checkUrlAndLoadContent);
+            checkUrlAndLoadContent();
         });
+
+        function checkUrlAndLoadContent() {
+            const hash = window.location.hash.substring(1);
+            if (!hash) {
+                showView(null);
+                document.getElementById('searchInput').value = '';
+                document.getElementById('searchResults').classList.add('hidden');
+                return;
+            }
+            const [type, value] = hash.split('/');
+            if (type === 'map' && value) {
+                fetchMapDetails(value);
+            } else if (type === 'creator' && value) {
+                fetchCreatorDetails(value);
+            }
+        }
 
         function handleSearchInput(event) {
             clearTimeout(searchTimeout);
@@ -175,7 +263,7 @@
                 displaySearchResults(islands.data, creators.data);
             } catch (error) {
                 console.error("Search failed:", error);
-                showError("Search feature is currently unavailable.");
+                showAlert("Search feature is currently unavailable.", 'error');
             }
         }
 
@@ -188,7 +276,11 @@
                     const item = document.createElement('div');
                     item.className = 'result-item';
                     item.innerHTML = `<img src="${island.smallImage}" alt=""><div class="info"><h4>${island.islandTitle}</h4><p>${island.creatorSlug}</p></div>`;
-                    item.onclick = () => { fetchMapDetails(island.islandCode); resultsEl.classList.add('hidden'); document.getElementById('searchInput').value = ''; };
+                    item.onclick = () => {
+                        window.location.hash = `map/${island.islandCode}`;
+                        resultsEl.classList.add('hidden');
+                        document.getElementById('searchInput').value = '';
+                    };
                     resultsEl.appendChild(item);
                 });
             }
@@ -198,7 +290,11 @@
                     const item = document.createElement('div');
                     item.className = 'result-item';
                     item.innerHTML = `<img src="${creator.creatorIcon}" alt="" class="creator-icon"><div class="info"><h4>${creator.creatorSlug}</h4></div>`;
-                    item.onclick = () => { fetchCreatorDetails(creator.creatorSlug); resultsEl.classList.add('hidden'); document.getElementById('searchInput').value = ''; };
+                    item.onclick = () => {
+                        window.location.hash = `creator/${creator.creatorSlug}`;
+                        resultsEl.classList.add('hidden');
+                        document.getElementById('searchInput').value = '';
+                    };
                     resultsEl.appendChild(item);
                 });
             }
@@ -219,7 +315,7 @@
                 const data = await response.json();
                 displayCreatorProfile(data.pageProps);
             } catch (error) {
-                showError(error.message);
+                showAlert(error.message, 'error');
                 creatorViewEl.innerHTML = `<div style="padding:2rem; text-align:center; color: var(--red-error);">${error.message}</div>`;
             }
         }
@@ -265,7 +361,8 @@
                 displayMapDetails(data.island);
                 fetchPlayerData(data.island.code);
             } catch (error) {
-                showError(error.message);
+                showAlert(error.message, 'error');
+                window.location.hash = '';
                 showView(null);
             }
         }
@@ -302,7 +399,11 @@
             document.getElementById("mapTitle").innerText = island.title || "Untitled Map";
             const creatorButton = document.getElementById("mapCreatorButton");
             creatorButton.innerText = island.creator || "Unknown";
-            if (island.creatorCode) creatorButton.onclick = () => fetchCreatorDetails(island.creatorCode);
+            if (island.creatorCode) {
+                creatorButton.onclick = () => {
+                    window.location.hash = `creator/${island.creatorCode}`;
+                };
+            }
             document.getElementById("mapTool").innerText = tool;
             document.getElementById("mapReleaseDate").innerText = island.publishedDate ? new Date(island.publishedDate).toLocaleDateString() : 'N/A';
             document.getElementById("mapAgeRating").innerText = pegiRating;
@@ -330,7 +431,6 @@
                     document.getElementById("summaryRank").classList.remove("hidden");
                 }
                 
-                // --- NUEVO: Mostrar datos de Discovery ---
                 const discoveryTagsEl = document.getElementById('discoveryTags');
                 discoveryTagsEl.innerHTML = '';
                 if(data.discoveryData && data.discoveryData.length > 0) {
@@ -381,14 +481,39 @@
             });
         }
         
-        function showError(message, isError = true) {
-            const el = document.getElementById("errorAlert");
-            el.innerHTML = `<span id="errorText">${message}</span><button onclick="dismissError()" style="background: rgba(0,0,0,0.2); border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer;">Dismiss</button>`;
-            el.style.backgroundColor = isError ? 'var(--red-error)' : 'var(--green-success)';
-            el.classList.remove("hidden");
+        function showAlert(message, type = 'error', duration = 5000) {
+            const container = document.getElementById('alert-container');
+            if (!container) return;
+
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+
+            const iconClass = type === 'success' ? 'fa-solid fa-circle-check' : 'fa-solid fa-triangle-exclamation';
+            
+            alertDiv.innerHTML = `
+                <i class="${iconClass} alert-icon"></i>
+                <div class="alert-content">${message}</div>
+            `;
+            
+            alertDiv.onclick = () => {
+                alertDiv.classList.add('fade-out');
+                alertDiv.addEventListener('transitionend', () => alertDiv.remove());
+            };
+
+            container.appendChild(alertDiv);
+
+            setTimeout(() => {
+                alertDiv.classList.add('fade-out');
+                alertDiv.addEventListener('transitionend', () => alertDiv.remove());
+            }, duration);
         }
-        function dismissError() { document.getElementById("errorAlert").classList.add("hidden"); }
-        function copyCode() { navigator.clipboard.writeText(document.getElementById('mapCodeDisplay').innerText).then(() => showError('Map code copied!', false)); }
+
+        function copyCode() { 
+            const code = document.getElementById('mapCodeDisplay').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                showAlert('Map code copied!', 'success', 3000);
+            });
+        }
     </script>
 </body>
 </html>
