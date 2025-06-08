@@ -341,10 +341,10 @@
                 </div>
                 ${pageData.bio ? `<p class="creator-bio">${pageData.bio.replace(/\n/g, '<br>')}</p>` : ''}
                 <div class="creator-stats">
-                    <div class="creator-stat"><div class="value">${fallbackData.totalPlayers?.toLocaleString('en-US') ?? 'N/A'}</div><div class="label">Total Players</div></div>
-                    <div class="creator-stat"><div class="value">${fallbackData.creatorRank ? `#${fallbackData.creatorRank.toLocaleString('en-US')}`: 'N/A'}</div><div class="label">Creator Rank</div></div>
-                    <div class="creator-stat"><div class="value">${fallbackData.islandCount?.toLocaleString('en-US') ?? 'N/A'}</div><div class="label">Published Maps</div></div>
-                    <div class="creator-stat"><div class="value">${pageData.followerCount?.toLocaleString('en-US') ?? 'N/A'}</div><div class="label">Followers</div></div>
+                    <div class="creator-stat"><div class="value">${fallbackData.totalPlayers?.toLocaleString('en-US') ?? '0'}</div><div class="label">Total Players</div></div>
+                    <div class="creator-stat"><div class="value">${fallbackData.creatorRank ? `#${fallbackData.creatorRank.toLocaleString('en-US')}`: '0'}</div><div class="label">Creator Rank</div></div>
+                    <div class="creator-stat"><div class="value">${fallbackData.islandCount?.toLocaleString('en-US') ?? '0'}</div><div class="label">Published Maps</div></div>
+                    <div class="creator-stat"><div class="value">${pageData.followerCount?.toLocaleString('en-US') ?? '0'}</div><div class="label">Followers</div></div>
                 </div>`;
         }
         
@@ -395,7 +395,7 @@
             
             let tool = 'Creative';
             if (island.type === 'valkyrie:application') tool = 'UEFN';
-            const pegiRating = island.ratings?.boards?.PEGI?.rating.replace('PEGI_AGE_', '') ?? 'N/A';
+            const pegiRating = island.ratings?.boards?.PEGI?.rating.replace('PEGI_AGE_', '') ?? '0';
             document.getElementById("mapTitle").innerText = island.title || "Untitled Map";
             const creatorButton = document.getElementById("mapCreatorButton");
             creatorButton.innerText = island.creator || "Unknown";
@@ -405,7 +405,7 @@
                 };
             }
             document.getElementById("mapTool").innerText = tool;
-            document.getElementById("mapReleaseDate").innerText = island.publishedDate ? new Date(island.publishedDate).toLocaleDateString() : 'N/A';
+            document.getElementById("mapReleaseDate").innerText = island.publishedDate ? new Date(island.publishedDate).toLocaleDateString() : '0';
             document.getElementById("mapAgeRating").innerText = pegiRating;
             document.getElementById("mapXPStatus").innerText = island.xp?.enabled ? 'Awarding XP' : 'No XP';
             document.getElementById("mapCodeDisplay").innerText = island.code;
@@ -425,7 +425,7 @@
                 
                 fullPlayerData = data.parsedData.map(d => ({ x: new Date(d.at), y: d.ccu })).reverse();
                 
-                document.getElementById("summaryPeakAllTime").innerText = data.highestValue?.ccu?.toLocaleString('en-US') ?? 'N/A';
+                document.getElementById("summaryPeakAllTime").innerText = data.highestValue?.ccu?.toLocaleString('en-US') ?? '0';
                 if (data.islandTop) {
                     document.getElementById("summaryRank").innerText = data.islandTop;
                     document.getElementById("summaryRank").classList.remove("hidden");
@@ -443,7 +443,7 @@
                 document.getElementById('playerChartSection').classList.remove('hidden');
             } catch (error) {
                 console.error(error);
-                document.getElementById("mapLivePlayers").innerText = 'N/A'; document.getElementById("mapPeakPlayers").innerText = 'N/A';
+                document.getElementById("mapLivePlayers").innerText = '0'; document.getElementById("mapPeakPlayers").innerText = '0';
             }
         }
 
@@ -457,13 +457,13 @@
             else startDate = dateFns.subDays(now, 1);
             
             const filteredData = fullPlayerData.filter(d => d.x >= startDate);
-            const peakInRange = filteredData.length > 0 ? Math.max(...filteredData.map(d => d.y)) : 'N/A';
-            const livePlayers = fullPlayerData.length > 0 ? fullPlayerData[fullPlayerData.length - 1].y : 'N/A';
+            const peakInRange = filteredData.length > 0 ? Math.max(...filteredData.map(d => d.y)) : '0';
+            const livePlayers = fullPlayerData.length > 0 ? fullPlayerData[fullPlayerData.length - 1].y : '0';
             
-            document.getElementById("mapLivePlayers").innerText = typeof livePlayers === 'number' ? livePlayers.toLocaleString('en-US') : 'N/A';
-            document.getElementById("mapPeakPlayers").innerText = typeof peakInRange === 'number' ? peakInRange.toLocaleString('en-US') : 'N/A';
-            document.getElementById("summaryLive").innerText = typeof livePlayers === 'number' ? livePlayers.toLocaleString('en-US') : 'N/A';
-            document.getElementById("summaryPeak24h").innerText = typeof peakInRange === 'number' ? peakInRange.toLocaleString('en-US') : 'N/A';
+            document.getElementById("mapLivePlayers").innerText = typeof livePlayers === 'number' ? livePlayers.toLocaleString('en-US') : '0';
+            document.getElementById("mapPeakPlayers").innerText = typeof peakInRange === 'number' ? peakInRange.toLocaleString('en-US') : '0';
+            document.getElementById("summaryLive").innerText = typeof livePlayers === 'number' ? livePlayers.toLocaleString('en-US') : '0';
+            document.getElementById("summaryPeak24h").innerText = typeof peakInRange === 'number' ? peakInRange.toLocaleString('en-US') : '0';
             
             createPlayerChart(filteredData);
         }
