@@ -342,7 +342,7 @@
                 ${pageData.bio ? `<p class="creator-bio">${pageData.bio.replace(/\n/g, '<br>')}</p>` : ''}
                 <div class="creator-stats">
                     <div class="creator-stat"><div class="value">${fallbackData.totalPlayers?.toLocaleString('en-US') ?? '0'}</div><div class="label">Total Players</div></div>
-                    <div class="creator-stat"><div class="value">${fallbackData.creatorRank ? `#${fallbackData.creatorRank.toLocaleString('en-US')}`: '0'}</div><div class="label">Creator Rank</div></div>
+                    <div class="creator-stat"><div class="value">${fallbackData.creatorRank ? `#${fallbackData.creatorRank.toLocaleString('en-US')}`: '#0'}</div><div class="label">Creator Rank</div></div>
                     <div class="creator-stat"><div class="value">${fallbackData.islandCount?.toLocaleString('en-US') ?? '0'}</div><div class="label">Published Maps</div></div>
                     <div class="creator-stat"><div class="value">${pageData.followerCount?.toLocaleString('en-US') ?? '0'}</div><div class="label">Followers</div></div>
                 </div>`;
